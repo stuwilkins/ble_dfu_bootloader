@@ -1,3 +1,9 @@
+# Build
+_build
+
+# Public Key
+dfu_public_key.c
+
 # Prerequisites
 *.d
 

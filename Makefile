@@ -1,11 +1,12 @@
-PROJECT_NAME     := secure_bootloader_ble_s340_pca10056_debug
-TARGETS          := nrf52840_xxaa_s340
+PROJECT_NAME     := secure_bootloader_ble
+SOFTDEVICE       := $(SOFTDEVICE)
+TARGETS          := nrf52840_xxaa_s$(SOFTDEVICE)
 OUTPUT_DIRECTORY := _build
 
-SDK_ROOT := ../../
+SDK_ROOT := $(HOME)/nRF5_SDK_17.0.2_d674dde
 PROJ_DIR := ./
 
-$(OUTPUT_DIRECTORY)/nrf52840_xxaa_s340.out: \
+$(OUTPUT_DIRECTORY)/nrf52840_xxaa_s$(SOFTDEVICE).out: \
   LINKER_SCRIPT  := secure_bootloader_gcc_nrf52.ld
 
 # Source files common to all targets
@@ -95,7 +96,7 @@ SRC_FILES += \
 INC_FOLDERS += \
   $(SDK_ROOT)/components/libraries/crypto/backend/micro_ecc \
   $(SDK_ROOT)/components/libraries/memobj \
-  $(SDK_ROOT)/components/softdevice/s340/headers/nrf52 \
+  $(SDK_ROOT)/components/softdevice/s$(SOFTDEVICE)/headers/nrf52 \
   $(SDK_ROOT)/components/libraries/crc32 \
   $(SDK_ROOT)/components/libraries/experimental_section_vars \
   $(SDK_ROOT)/components/libraries/mem_manager \
@@ -124,9 +125,9 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components/boards \
   $(SDK_ROOT)/components/libraries/crypto/backend/cc310 \
   $(SDK_ROOT)/components/libraries/bootloader \
-  $(SDK_ROOT)/components/softdevice/s340/headers \
+  $(SDK_ROOT)/components/softdevice/s$(SOFTDEVICE)/headers \
   $(SDK_ROOT)/components/libraries/crypto \
-  ../config \
+  $(PROJ_DIR)/config \
   $(SDK_ROOT)/components/libraries/crypto/backend/optiga \
   $(SDK_ROOT)/components/libraries/scheduler \
   $(SDK_ROOT)/external/nrf_cc310_bl/include \
@@ -158,7 +159,7 @@ OPT += -flto
 # C flags common to all targets
 CFLAGS += $(OPT)
 CFLAGS += -DBLE_STACK_SUPPORT_REQD
-CFLAGS += -DBOARD_PCA10056
+CFLAGS += -DCUSTOM_BOARD_INC=adafruit_nrf52
 CFLAGS += -DCONFIG_GPIO_AS_PINRESET
 CFLAGS += -DDEBUG_NRF
 CFLAGS += -DFLOAT_ABI_HARD
@@ -167,7 +168,7 @@ CFLAGS += -DNRF_DFU_DEBUG_VERSION
 CFLAGS += -DNRF_DFU_SETTINGS_VERSION=2
 CFLAGS += -DNRF_DFU_SVCI_ENABLED
 CFLAGS += -DNRF_SD_BLE_API_VERSION=7
-CFLAGS += -DS340
+CFLAGS += -DS$(SOFTDEVICE)
 CFLAGS += -DSOFTDEVICE_PRESENT
 CFLAGS += -DSVC_INTERFACE_CALL_AS_NORMAL_FUNCTION
 CFLAGS += -mcpu=cortex-m4
@@ -186,7 +187,7 @@ ASMFLAGS += -mcpu=cortex-m4
 ASMFLAGS += -mthumb -mabi=aapcs
 ASMFLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16
 ASMFLAGS += -DBLE_STACK_SUPPORT_REQD
-ASMFLAGS += -DBOARD_PCA10056
+ASMFLAGS += -DCUSTOM_BOARD_INC=adafruit_nrf52
 ASMFLAGS += -DCONFIG_GPIO_AS_PINRESET
 ASMFLAGS += -DDEBUG_NRF
 ASMFLAGS += -DFLOAT_ABI_HARD
@@ -195,7 +196,7 @@ ASMFLAGS += -DNRF_DFU_DEBUG_VERSION
 ASMFLAGS += -DNRF_DFU_SETTINGS_VERSION=2
 ASMFLAGS += -DNRF_DFU_SVCI_ENABLED
 ASMFLAGS += -DNRF_SD_BLE_API_VERSION=7
-ASMFLAGS += -DS340
+ASMFLAGS += -DS$(SOFTDEVICE)
 ASMFLAGS += -DSOFTDEVICE_PRESENT
 ASMFLAGS += -DSVC_INTERFACE_CALL_AS_NORMAL_FUNCTION
 
@@ -209,8 +210,8 @@ LDFLAGS += -Wl,--gc-sections
 # use newlib in nano version
 LDFLAGS += --specs=nano.specs
 
-nrf52840_xxaa_s340: CFLAGS += -D__HEAP_SIZE=0
-nrf52840_xxaa_s340: ASMFLAGS += -D__HEAP_SIZE=0
+nrf52840_xxaa_s$(SOFTDEVICE): CFLAGS += -D__HEAP_SIZE=0
+nrf52840_xxaa_s$(SOFTDEVICE): ASMFLAGS += -D__HEAP_SIZE=0
 
 # Add standard libraries at the very end of the linker input, after all objects
 # that may need symbols provided by these libraries.
@@ -220,12 +221,12 @@ LIB_FILES += -lc -lnosys -lm
 .PHONY: default help
 
 # Default target - first one defined
-default: nrf52840_xxaa_s340
+default: nrf52840_xxaa_s$(SOFTDEVICE)
 
 # Print all targets that can be built
 help:
 	@echo following targets are available:
-	@echo		nrf52840_xxaa_s340
+	@echo		nrf52840_xxaa_s$(SOFTDEVICE)
 	@echo		flash_softdevice
 	@echo		sdk_config - starting external tool for editing sdk_config.h
 	@echo		flash      - flashing binary
@@ -241,20 +242,20 @@ $(foreach target, $(TARGETS), $(call define_target, $(target)))
 
 # Flash the program
 flash: default
-	@echo Flashing: $(OUTPUT_DIRECTORY)/nrf52840_xxaa_s340.hex
-	nrfjprog -f nrf52 --program $(OUTPUT_DIRECTORY)/nrf52840_xxaa_s340.hex --sectorerase
+	@echo Flashing: $(OUTPUT_DIRECTORY)/nrf52840_xxaa_s$(SOFTDEVICE).hex
+	nrfjprog -f nrf52 --program $(OUTPUT_DIRECTORY)/nrf52840_xxaa_s$(SOFTDEVICE).hex --sectorerase
 	nrfjprog -f nrf52 --reset
 
 # Flash softdevice
 flash_softdevice:
-	@echo Flashing: s340_nrf52_7.2.0_softdevice.hex
-	nrfjprog -f nrf52 --program $(SDK_ROOT)/components/softdevice/s340/hex/s340_nrf52_7.2.0_softdevice.hex --sectorerase
+	@echo Flashing: s$(SOFTDEVICE)_nrf52_7.2.0_softdevice.hex
+	nrfjprog -f nrf52 --program $(SDK_ROOT)/components/softdevice/s$(SOFTDEVICE)/hex/s$(SOFTDEVICE)_nrf52_7.2.0_softdevice.hex --sectorerase
 	nrfjprog -f nrf52 --reset
 
 erase:
 	nrfjprog -f nrf52 --eraseall
 
-SDK_CONFIG_FILE := ../config/sdk_config.h
+SDK_CONFIG_FILE := $(PROJ_DIR)/config/sdk_config.h
 CMSIS_CONFIG_TOOL := $(SDK_ROOT)/external_tools/cmsisconfig/CMSIS_Configuration_Wizard.jar
 sdk_config:
 	java -jar $(CMSIS_CONFIG_TOOL) $(SDK_CONFIG_FILE)
