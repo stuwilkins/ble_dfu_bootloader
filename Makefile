@@ -1,5 +1,5 @@
 PROJECT_NAME     := secure_bootloader_ble
-SOFTDEVICE       := 140
+SOFTDEVICE       := 340
 TARGETS          := nrf52840_xxaa_s$(SOFTDEVICE)
 OUTPUT_DIRECTORY := _build
 
